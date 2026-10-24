@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AgentBoard — Kanban for Coding Agents (Demo)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0c0f;--panel:#121318;--card:#171920;--card2:#1d2029;--line:#262a35;--txt:#e6e8ee;--mut:#8a90a2;--acc:#7c6cff;--acc2:#4fd1c5;--ok:#3ecf8e;--warn:#f5b84a;--bad:#f2555a;--r:10px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 Inter,system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.logo{font-weight:700;display:flex;gap:8px;align-items:center}.logo i{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:inline-block}
+.tabs{display:flex;gap:4px;background:var(--bg);padding:3px;border-radius:8px;border:1px solid var(--line)}
+.tabs button{background:none;border:0;color:var(--mut);padding:6px 14px;border-radius:6px;cursor:pointer;font:inherit}.tabs button.on{background:var(--card2);color:var(--txt)}
+.demo{font-size:11px;padding:3px 8px;border-radius:99px;background:#f5b84a22;color:var(--warn);border:1px solid #f5b84a55}
+.sp{flex:1}.btn{background:var(--card2);color:var(--txt);border:1px solid var(--line);padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit}.btn:hover{border-color:#3a3f4d}
+.btn.p{background:var(--acc);border-color:var(--acc);color:#fff}.btn.ok{background:#3ecf8e22;border-color:var(--ok);color:var(--ok)}.btn.bad{background:#f2555a22;border-color:var(--bad);color:var(--bad)}
+main{flex:1;overflow:hidden;position:relative}
+.board{display:grid;grid-template-columns:repeat(4,minmax(260px,1fr));gap:14px;padding:18px;height:100%;overflow-x:auto}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
+.col h3{margin:0;padding:12px 14px;font-size:13px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+.col h3 .dot{width:8px;height:8px;border-radius:50%}.col h3 .n{color:var(--mut);font-weight:500;margin-left:auto}
+.list{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}.list.over{background:#7c6cff10;outline:1px dashed var(--acc);outline-offset:-6px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:11px 12px;cursor:grab;transition:border-color .15s,transform .15s}.card:hover{border-color:#3a3f4d;transform:translateY(-1px)}
+.card.drag{opacity:.4}.card .t{font-weight:600;margin-bottom:6px}.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tag{font-size:11px;padding:2px 7px;border-radius:5px;background:var(--card2);color:var(--mut);border:1px solid var(--line)}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin:9px 0 7px}.bar b{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s}
+.meta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--mut)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 #3ecf8e88;animation:p 1.6s infinite}@keyframes p{70%{box-shadow:0 0 0 7px #3ecf8e00}100%{box-shadow:0 0 0 0 #3ecf8e00}}
+.side{position:fixed;top:0;right:0;width:min(560px,100%);height:100vh;background:var(--panel);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .25s;z-index:20;display:flex;flex-direction:column;box-shadow:-20px 0 40px #0008}
+.side.open{transform:none}.side .hd{padding:16px 18px;border-bottom:1px solid var(--line)}.side .bd{flex:1;overflow-y:auto;padding:16px 18px}
+.sec{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:16px 0 8px}
+.log{background:#08090b;border:1px solid var(--line);border-radius:8px;padding:10px;height:220px;overflow-y:auto;font-size:12px}.log div{white-space:pre-wrap}.log .ts{color:#555c6e}
+.diff{background:#08090b;border:1px solid var(--line);border-radius:8px;font-size:12px}.diff div{padding:5px 10px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.add{color:var(--ok)}.del{color:var(--bad)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kv div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}.kv span{display:block;font-size:11px;color:var(--mut)}
+.modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:30}.modal.open{display:flex}
+.modal form{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(440px,92%);display:flex;flex-direction:column;gap:10px}
+label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px}input,select,textarea{background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:8px;font:inherit}
+.dash{padding:18px;overflow-y:auto;height:100%;display:none}.dash.on{display:block;flex:1;min-height:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.kpi span{color:var(--mut);font-size:12px}.kpi b{display:block;font-size:26px;margin-top:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.panel h4{margin:0 0 10px;font-size:13px}
+.util{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:12.5px}.util .bar{flex:1;margin:0;height:8px}.util .nm{width:150px}
+.feed div{font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line);color:var(--mut)}.feed b{color:var(--txt);font-weight:500}
+.board{grid-template-columns:repeat(3,1fr)!important;height:auto!important;flex:1;min-height:0}main{display:flex;flex-direction:column}.closed{flex:none;max-height:35vh;overflow:auto}.closed{margin:0 20px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}.closed summary{cursor:pointer;font-size:13px;font-weight:600}.closed .cl{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px}.mini{font-size:11px;padding:3px 8px}
+.foot{font-size:11px;color:var(--mut);padding:6px 20px;border-top:1px solid var(--line);background:var(--panel)}
+</style></head><body>
+<header><div class="logo"><i></i>AgentBoard</div><div class="tabs"><button data-tab="board" class="on">Board</button><button data-tab="dash">Dashboard</button></div>
+<span class="demo">DEMO · simulated data</span><div class="sp"></div>
+<label style="flex-direction:row;align-items:center;gap:6px">Sim speed <select id="speed"><option value="1">1×</option><option value="3" selected>3×</option><option value="8">8×</option></select></label>
+<button class="btn" id="reset">Reset demo</button><button class="btn p" id="new">+ New task</button></header>
+<main><div class="board" id="board"></div><div class="dash" id="dash"></div><details class="closed" id="closed"></details></main>
+<div class="foot">Portfolio demo by Rafi Jacobson · all agents, repos, logs, tokens and costs are simulated in-browser · state saved to localStorage</div>
+<aside class="side" id="side"></aside>
+<div class="modal" id="modal"><form id="form"><h3 style="margin:0">New agent task</h3>
+<label>Title<input name="title" required placeholder="Add rate limiting to /api/search"></label>
+<label>Agent<select name="agent"></select></label>
+<div class="row" style="flex-wrap:nowrap"><label style="flex:1">Repo<input name="repo" value="acme/web-app"></label><label style="flex:1">Branch<input name="branch" placeholder="auto"></label></div>
+<label>Instructions<textarea name="desc" rows="3" placeholder="What should the agent do?"></textarea></label>
+<label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" name="start" checked> Start agent immediately</label>
+<div class="row" style="justify-content:flex-end"><button type="button" class="btn" id="cancel">Cancel</button><button class="btn p">Create</button></div></form></div>
+<script>
+const COLS=[["done","Done","#3ecf8e"],["review","Needs you","#f5b84a"],["running","Running","#7c6cff"]];
+const AGENTS=[{n:"Atlas",m:"sim-large-v2",c:12},{n:"Nova",m:"sim-fast-mini",c:2},{n:"Orion",m:"sim-reasoner-x",c:20},{n:"Vega",m:"sim-code-pro",c:8}];
+const STEPS=["Reading repository structure","Indexing relevant files","Planning changes","Editing source files","Writing unit tests","Running test suite","Fixing failing test","Running linter","Summarizing diff"];
+const FILES=["src/api/search.ts","src/lib/cache.ts","src/components/Table.tsx","tests/search.test.ts","src/utils/retry.ts","src/db/migrations/042.sql","README.md","src/hooks/useAgents.ts"];
+const KEY="agentboard-demo-v3";let S,sel=null;
+const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9),rnd=(a,b)=>a+Math.random()*(b-a);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function mk(title,ai,col,repo="acme/web-app",desc=""){const a=AGENTS[ai];const t={id:uid(),title,agent:a.n,model:a.m,repo,branch:"agent/"+title.toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,28),col,progress:0,tokens:0,elapsed:0,log:[],diff:[],desc,created:Date.now(),result:null};
+ if(col!=="backlog")fast(t,col);else{t.col="running";t.queued=true}return t}
+function fast(t,col){const p=col==="running"?rnd(10,60):100;while(t.progress<p)tick(t,1,true);if(col!=="running"){t.progress=100;finish(t,true)}t.col=col;if(col==="done"){t.result="approved";t.doneAt=Date.now()-rnd(1,48)*36e5}}
+function seed(){const T=[["Migrate auth to OAuth PKCE flow",2,"backlog","acme/identity"],["Add dark-mode tokens to design system",1,"backlog","acme/ui-kit"],["Refactor retry logic with jitter",3,"running"],["Generate e2e tests for checkout",0,"running","acme/storefront"],["Add rate limiting to /api/search",3,"review"],["Fix N+1 query in orders endpoint",2,"review","acme/storefront"],["Upgrade to Node 22 + fix deprecations",1,"done"],["Add OpenTelemetry tracing",0,"done","acme/platform"],["Virtualize large data table",3,"done","acme/ui-kit"]];
+ S={tasks:T.map(x=>mk(x[0],x[1],x[2],x[3]||"acme/web-app")),events:[],hist:[]};S.tasks.filter(t=>t.col==="done").forEach((t,i)=>{if(i===0)t.result="rejected"});save()}
+function save(){localStorage.setItem(KEY,JSON.stringify(S))}
+function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||!S.tasks)seed()}
+function cost(t){const a=AGENTS.find(a=>a.n===t.agent)||AGENTS[0];return t.tokens/1e6*a.c}
+const fmtT=s=>{s=Math.round(s);return s<60?s+"s":Math.floor(s/60)+"m "+(s%60)+"s"},fmtK=n=>n>1e6?(n/1e6).toFixed(2)+"M":n>1e3?(n/1e3).toFixed(1)+"k":Math.round(n);
+function addLog(t,msg,silent){t.log.push([new Date().toLocaleTimeString([],{hour12:false}),msg]);if(t.log.length>80)t.log.shift()}
+function tick(t,dt,silent){t.elapsed+=dt*rnd(3,7);t.tokens+=dt*rnd(800,2600);const before=Math.floor(t.progress/100*STEPS.length);t.progress=Math.min(100,t.progress+dt*rnd(.6,2.2));const after=Math.floor(t.progress/100*STEPS.length);
+ if(after>before||!t.log.length){const st=STEPS[Math.min(after,STEPS.length-1)];addLog(t,"▸ "+st);if(st.startsWith("Editing")){const f=FILES[Math.floor(Math.random()*FILES.length)];addLog(t,"  edit "+f);if(!t.diff.find(d=>d.f===f))t.diff.push({f,a:Math.round(rnd(4,90)),d:Math.round(rnd(0,40))})}if(st.startsWith("Running test"))addLog(t,"  "+Math.round(rnd(40,180))+" passed, "+(Math.random()<.3?1:0)+" failed")}
+ else if(Math.random()<.25)addLog(t,"  tool_call: "+["read_file","grep","run_cmd","apply_patch"][Math.floor(Math.random()*4)])}
+function finish(t,silent){if(!t.diff.length)t.diff.push({f:FILES[0],a:24,d:6},{f:FILES[3],a:41,d:0});addLog(t,"✓ Agent finished — awaiting human review");t.col="review";if(!silent)ev(`<b>${t.agent}</b> finished “${esc(t.title)}” → review`)}
+function ev(h){S.events.unshift({h,at:Date.now()});S.events=S.events.slice(0,30)}
+function loop(){const sp=+$("#speed").value;let ch=false;S.tasks.forEach(t=>{if(t.col==="running"&&!t.queued){tick(t,.5*sp);ch=true;if(t.progress>=100)finish(t)}});
+ if(ch){save();render()}}
+function render(){renderBoard();if($("#dash").classList.contains("on"))renderDash();if(sel)renderSide()}
+function renderBoard(){$("#board").innerHTML=COLS.map(([k,l,c])=>{const ts=S.tasks.filter(t=>t.col===k&&!t.closed).sort((a,b)=>(b.queued?1:0)-(a.queued?1:0));return `<section class="col"><h3><span class="dot" style="background:${c}"></span>${l}<span class="n">${ts.length}</span></h3><div class="list" data-col="${k}">${ts.map(card).join("")}</div></section>`}).join("")+"";renderClosed()}
+function renderClosed(){const cs=S.tasks.filter(t=>t.closed),d=$("#closed"),o=d.open;d.innerHTML=`<summary>Closed sessions (${cs.length})</summary>`+(cs.map(t=>`<div class="cl"><span>${esc(t.title)} <span class="tag" style="color:var(--${t.result==="rejected"?"bad":"ok"})">${t.result==="rejected"?"rejected":"merged"}</span></span><button class="btn mini" onclick="reopen('${t.id}')">↺ Reopen</button></div>`).join("")||'<div style="color:var(--mut);font-size:12.5px;padding:6px 0">No closed sessions yet. Use “Close session” on a Done card.</div>');d.open=o}
+function closeSess(id,e){e&&e.stopPropagation();const t=S.tasks.find(x=>x.id===id);t.closed=true;if(sel===id)closeSide();ev(`Closed session “${esc(t.title)}”`);save();render()}
+function reopen(id){const t=S.tasks.find(x=>x.id===id);t.closed=false;ev(`Reopened “${esc(t.title)}”`);save();render()}
+function card(t){const st=t.queued?'<span class="tag">queued</span>':t.col==="running"?'<span class="pulse"></span>':t.result==="rejected"?'<span class="tag" style="color:var(--bad)">rejected</span>':t.result==="approved"?'<span class="tag" style="color:var(--ok)">merged</span>':"";
+ return `<div class="card" draggable="true" data-id="${t.id}"><div class="row" style="justify-content:space-between"><span class="tag">${t.agent} · ${t.model}</span>${st}</div><div class="t" style="margin-top:7px">${esc(t.title)}</div>
+ <div class="row mono" style="font-size:11px;color:var(--mut)">${esc(t.repo)} ⎇ ${esc(t.branch)}</div><div class="bar"><b style="width:${t.progress}%"></b></div>
+ <div class="meta"><span>${Math.round(t.progress)}%</span><span>${fmtK(t.tokens)} tok · $${cost(t).toFixed(2)}</span><span>⏱ ${fmtT(t.elapsed)}</span></div>${t.col==="done"?`<button class="btn mini" style="margin-top:8px" onclick="closeSess('${t.id}',event)">Close session</button>`:""}</div>`}
+function renderSide(){const t=S.tasks.find(x=>x.id===sel);if(!t){closeSide();return}const L=$("#side .log");const atBottom=!L||L.scrollTop+L.clientHeight>=L.scrollHeight-10;
+ const add=t.diff.reduce((s,d)=>s+d.a,0),del=t.diff.reduce((s,d)=>s+d.d,0);
+ $("#side").innerHTML=`<div class="hd"><div class="row" style="justify-content:space-between"><span class="tag">${t.queued?"Queued":COLS.find(c=>c[0]===t.col)[1]}</span><button class="btn" onclick="closeSide()">✕</button></div><h2 style="margin:10px 0 4px;font-size:18px">${esc(t.title)}</h2><div class="mono" style="font-size:12px;color:var(--mut)">${esc(t.repo)} ⎇ ${esc(t.branch)}</div></div>
+ <div class="bd"><div class="kv"><div><span>Agent / model</span>${t.agent} · ${t.model}</div><div><span>Progress</span>${Math.round(t.progress)}%</div><div><span>Tokens · est. cost (sim)</span>${fmtK(t.tokens)} · $${cost(t).toFixed(3)}</div><div><span>Agent time</span>${fmtT(t.elapsed)}</div></div>
+ ${t.desc?`<div class="sec">Instructions</div><div style="color:var(--mut)">${esc(t.desc)}</div>`:""}
+ <div class="sec">Live agent log ${t.col==="running"?'<span class="pulse" style="display:inline-block;margin-left:6px"></span>':""}</div><div class="log mono">${t.log.map(l=>`<div><span class="ts">${l[0]}</span> ${esc(l[1])}</div>`).join("")||'<div class="ts">Agent not started yet.</div>'}</div>
+ <div class="sec">Diff summary · <span class="add">+${add}</span> <span class="del">−${del}</span> · ${t.diff.length} files</div><div class="diff mono">${t.diff.map(d=>`<div><span>${d.f}</span><span><span class="add">+${d.a}</span> <span class="del">−${d.d}</span></span></div>`).join("")||'<div style="color:var(--mut)">No changes yet</div>'}</div>
+ <div class="row" style="margin-top:18px;gap:8px">${t.col==="review"?`<button class="btn ok" onclick="decide('${t.id}',1)">✓ Approve & merge</button><button class="btn bad" onclick="decide('${t.id}',0)">✕ Reject & re-run</button>`:""}${t.queued?`<button class="btn p" onclick="startT('${t.id}')">▶ Start agent</button>`:""}${t.col==="running"&&!t.queued?`<button class="btn" onclick="pauseT('${t.id}')">⏸ Pause</button>`:""}${t.col==="done"?`<button class="btn" onclick="closeSess('${t.id}')">Close session</button>`:""}<div class="sp"></div><button class="btn bad" onclick="del('${t.id}')">Delete</button></div></div>`;
+ const L2=$("#side .log");if(atBottom)L2.scrollTop=L2.scrollHeight}
+function openSide(id){sel=id;renderSide();$("#side").classList.add("open")}
+function closeSide(){sel=null;$("#side").classList.remove("open")}
+function startT(id){const t=S.tasks.find(x=>x.id===id);t.queued=false;addLog(t,"▶ Agent "+t.agent+" started");ev(`<b>${t.agent}</b> started “${esc(t.title)}”`);save();render()}
+function pauseT(id){const t=S.tasks.find(x=>x.id===id);t.queued=true;addLog(t,"⏸ Paused");save();render()}
+function move(id,col){const t=S.tasks.find(x=>x.id===id);if(!t||t.col===col)return;t.queued=false;
+ if(col==="running"){if(t.progress>=100){t.progress=0;t.diff=[]}addLog(t,"▶ Agent "+t.agent+" started");ev(`<b>${t.agent}</b> started “${esc(t.title)}”`)}
+ if(col==="review"&&t.progress<100){t.progress=100;finish(t,true)}
+ if(col==="done"){t.progress=100;t.result=t.result||"approved";t.doneAt=Date.now();if(!t.diff.length)finish(t,true)}
+
+ if(col!=="done")t.result=null;t.col=col;save();render()}
+function decide(id,ok){const t=S.tasks.find(x=>x.id===id);if(ok){t.col="done";t.result="approved";t.doneAt=Date.now();addLog(t,"✓ Approved by reviewer — merged");ev(`Approved “${esc(t.title)}”`)}
+ else{S.tasks.push({...JSON.parse(JSON.stringify(t)),id:uid(),col:"done",result:"rejected",doneAt:Date.now()});t.progress=0;t.diff=[];t.col="running";addLog(t,"✕ Rejected — re-running with reviewer feedback");ev(`Rejected “${esc(t.title)}”, re-running`)}save();render()}
+function del(id){S.tasks=S.tasks.filter(t=>t.id!==id);closeSide();save();render()}
+function renderDash(){const T=S.tasks,done=T.filter(t=>t.col==="done"),ap=done.filter(t=>t.result==="approved");const tc=T.reduce((s,t)=>s+cost(t),0);
+ const avg=done.length?done.reduce((s,t)=>s+t.elapsed,0)/done.length:0;
+ $("#dash").innerHTML=`<div class="kpis">${[["Tasks done",ap.length],["Success rate",done.length?Math.round(ap.length/done.length*100)+"%":"—"],["Avg agent time",fmtT(avg)],["Total est. cost (sim)","$"+tc.toFixed(2)],["Tokens used",fmtK(T.reduce((s,t)=>s+t.tokens,0))],["Agents running",T.filter(t=>t.col==="running"&&!t.queued).length]].map(k=>`<div class="kpi"><span>${k[0]}</span><b>${k[1]}</b></div>`).join("")}</div>
+ <div class="grid2"><div class="panel"><h4>Throughput — tasks/hour (simulated, last 12h)</h4><canvas id="ch1" height="180" style="width:100%"></canvas></div><div class="panel"><h4>Cost by agent ($, sim)</h4><svg id="ch2" viewBox="0 0 400 180" style="width:100%;height:180px"></svg></div></div>
+ <div class="grid2"><div class="panel"><h4>Agent utilization</h4>${AGENTS.map(a=>{const mine=T.filter(t=>t.agent===a.n),r=mine.filter(t=>t.col==="running").length;const u=Math.min(100,r*45+mine.length*8);return `<div class="util"><span class="nm">${a.n} <span style="color:var(--mut)">${a.m}</span></span><div class="bar"><b style="width:${u}%"></b></div><span class="mono">${u}%</span></div>`}).join("")}</div>
+ <div class="panel"><h4>Activity feed</h4><div class="feed">${S.events.slice(0,8).map(e=>`<div>${e.h} · ${new Date(e.at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</div>`).join("")||'<div>No activity yet — start an agent.</div>'}</div></div></div>`;
+ const c=$("#ch1"),dpr=devicePixelRatio||1,w=c.clientWidth||500,h=180;c.width=w*dpr;c.height=h*dpr;const g=c.getContext("2d");g.scale(dpr,dpr);
+ const pts=Array.from({length:12},(_,i)=>{const now=Date.now(),hr=36e5;const real=done.filter(t=>t.doneAt>now-(12-i)*hr&&t.doneAt<=now-(11-i)*hr).length;return real+((i*7+3)%5)*.6+1});
+ const mx=Math.max(...pts)*1.2;g.strokeStyle="#262a35";for(let i=0;i<4;i++){g.beginPath();g.moveTo(0,20+i*45);g.lineTo(w,20+i*45);g.stroke()}
+ const X=i=>10+i*(w-20)/11,Y=v=>h-15-v/mx*(h-30);const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,"#7c6cff55");gr.addColorStop(1,"#7c6cff00");
+ g.beginPath();pts.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));g.lineTo(X(11),h);g.lineTo(X(0),h);g.fillStyle=gr;g.fill();
+ g.beginPath();pts.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));g.strokeStyle="#7c6cff";g.lineWidth=2;g.stroke();
+ const cs=AGENTS.map(a=>T.filter(t=>t.agent===a.n).reduce((s,t)=>s+cost(t),0)),cm=Math.max(...cs,.01),cols=["#7c6cff","#4fd1c5","#f5b84a","#3ecf8e"];
+ $("#ch2").innerHTML=AGENTS.map((a,i)=>{const bh=cs[i]/cm*120;return `<rect x="${30+i*92}" y="${145-bh}" width="56" height="${bh}" rx="6" fill="${cols[i]}"/><text x="${58+i*92}" y="${138-bh}" fill="#e6e8ee" font-size="12" text-anchor="middle">$${cs[i].toFixed(2)}</text><text x="${58+i*92}" y="165" fill="#8a90a2" font-size="12" text-anchor="middle">${a.n}</text>`}).join("")}
+// events
+document.addEventListener("dragstart",e=>{const c=e.target.closest?.(".card");if(c){e.dataTransfer.setData("text/plain",c.dataset.id);c.classList.add("drag")}});
+document.addEventListener("dragend",e=>{e.target.classList?.remove("drag");document.querySelectorAll(".over").forEach(x=>x.classList.remove("over"))});
+document.addEventListener("dragover",e=>{const l=e.target.closest?.(".list");if(l){e.preventDefault();document.querySelectorAll(".over").forEach(x=>x!==l&&x.classList.remove("over"));l.classList.add("over")}});
+document.addEventListener("drop",e=>{const l=e.target.closest?.(".list");if(l){e.preventDefault();move(e.dataTransfer.getData("text/plain"),l.dataset.col)}});
+$("#board").addEventListener("click",e=>{const c=e.target.closest(".card");if(c)openSide(c.dataset.id)});
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));const d=b.dataset.tab==="dash";$("#dash").classList.toggle("on",d);$("#board").style.display=d?"none":"grid";$("#closed").style.display=d?"none":"block";render()});
+$("#form [name=agent]").innerHTML=AGENTS.map((a,i)=>`<option value="${i}">${a.n} — ${a.m}</option>`).join("");
+$("#new").onclick=()=>{$("#modal").classList.add("open");$("#form [name=title]").focus()};$("#cancel").onclick=()=>$("#modal").classList.remove("open");
+$("#form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);const t=mk(f.get("title"),+f.get("agent"),"backlog",f.get("repo")||"acme/web-app",f.get("desc"));if(f.get("branch"))t.branch=f.get("branch");S.tasks.unshift(t);ev(`Created “${esc(t.title)}”`);if(f.get("start"))startT(t.id);e.target.reset();$("#modal").classList.remove("open");save();render()};
+$("#reset").onclick=()=>{if(confirm("Reset demo data?")){closeSide();seed();render()}};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeSide();$("#modal").classList.remove("open")}if(e.key==="n"&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$("#new").click()}});
+load();S.tasks.forEach(t=>{if(t.result&&t.col!=="done")t.col="done"});render();if(location.hash==="#dashboard")document.querySelector('.tabs button[data-tab="dash"]').click();setInterval(loop,1000);
+</script></body></html>
