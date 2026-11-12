@@ -1,4 +1,4 @@
-# AgentBoard — Kanban for Coding Agents
+# AgentBoard — The IDE Replacement
 
 **Your agents need a manager. This is the inbox.**
 
@@ -6,7 +6,7 @@
 
 ![Demo — inbox triage, one-tap approve, board, dashboard, brain](demo.gif)
 
-An original, single-file portfolio demo by Rafi Jacobson. AgentBoard is the missing UI for managing coding agents: a kanban board for every session, and an inbox that only shows you the sessions that truly need you.
+An original, single-file portfolio demo by Rafi Jacobson. AgentBoard is the IDE replacement for the agent era: you don't write code anymore — you manage the agents that do. A board for every session, and an inbox that only shows you the sessions that truly need you.
 
 ## The inbox — only what needs you
 
