@@ -72,6 +72,20 @@ label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px
 .qrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .qchip{background:var(--card2);color:var(--txt);border:1px solid var(--line);padding:6px 12px;border-radius:99px;cursor:pointer;font:inherit;font-size:12.5px}
 .qchip:hover{border-color:var(--acc)}
+.welc{position:fixed;inset:0;background:rgba(5,6,8,.85);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+.welc.hide{display:none}
+.wcard{max-width:540px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px;box-shadow:0 20px 60px #0009}
+.wcard h1{font-size:24px;margin:0 0 8px;line-height:1.25}
+.wcard p{color:var(--mut);margin:0 0 16px;line-height:1.55}
+.wpts{display:grid;gap:10px;margin:0 0 20px}
+.wpts div{font-size:13.5px;line-height:1.5}
+.wpts span{color:var(--mut)}
+.wbtn{background:var(--acc);color:#fff;border:0;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font:inherit}
+.wbtn:hover{filter:brightness(1.12)}
+.wskip{background:none;border:0;color:var(--mut);font-size:13px;cursor:pointer;margin-left:12px;font:inherit}
+.intro{background:linear-gradient(90deg,#7c6cff22,#4fd1c51a);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.intro span{font-size:13px;line-height:1.5}
+.intro button{background:none;border:0;color:var(--mut);cursor:pointer;font-size:18px;line-height:1;padding:0 0 2px 8px}
 </style></head><body>
 <header><div class="logo"><i></i>AgentBoard</div><div class="tabs"><button data-tab="inbox" class="on">Inbox<span class="bdg" id="inboxBdg" style="display:none"></span></button><button data-tab="board">Board</button><button data-tab="dash">Dashboard</button><button data-tab="brain">Brain</button></div>
 <span class="demo">DEMO · simulated data</span><div class="sp"></div>
@@ -79,6 +93,7 @@ label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px
 <button class="btn" id="reset">Reset demo</button><button class="btn p" id="new">+ New task</button></header>
 <main><div class="board" id="board" style="display:none"></div><div class="inbox on" id="inbox"></div><div class="dash" id="dash"></div><div class="brain" id="brain"></div><details class="closed" id="closed" style="display:none"></details></main>
 <div class="foot">Portfolio demo by Rafi Jacobson · <a href="https://www.linkedin.com/in/rafijacobson/" target="_blank" rel="noopener">LinkedIn</a> · <a href="mailto:rafijac@gmail.com">rafijac@gmail.com</a> · all agents, repos, logs, tokens and costs are simulated in-browser · state saved to localStorage</div>
+<div class="welc hide" id="welc"><div class="wcard"><h1>Your agents need a manager.</h1><p>This is <b style="color:var(--txt)">AgentBoard</b> — the IDE replacement. Your agents write the code. You only see the sessions that truly need you.</p><div class="wpts"><div><b>Inbox</b> <span>— only what needs a human. Each card is a decision, not a log.</span></div><div><b>Brain</b> <span>— the executive assistant learns your judgment and resolves what it can before it reaches you.</span></div><div><b>Board</b> <span>— every agent session at a glance: running, needs you, done.</span></div></div><p style="font-size:13px">Everything here is simulated — click around, approve a card, see how it feels.</p><div><button class="wbtn" onclick="closeWelc()">Show me the inbox</button><button class="wskip" onclick="closeWelc()">Skip</button></div></div></div>
 <aside class="side" id="side"></aside>
 <div class="modal" id="modal"><form id="form"><h3 style="margin:0">New agent task</h3>
 <label>Title<input name="title" required placeholder="Add rate limiting to /api/search"></label>
@@ -181,7 +196,9 @@ function renderInbox(){const items=inboxItems();
   <div class="sub">Suggested: <b style="color:var(--txt)">${esc(ib.suggestion)}</b></div>
   ${ib.q?`<div class="qbox"><div class="qhead">✦ Executive assistant asks</div><div class="qtext">${ib.q.text}</div><div class="qrow">${ib.q.replies.map(r=>`<button class="qchip" onclick="answerQ('${t.id}','${r[1]}')">${esc(r[0])}</button>`).join("")}</div></div>`:""}
   <div class="irow"><button class="btn ok" onclick="decide('${t.id}',1)">✓ Approve & merge</button><button class="btn bad" onclick="decide('${t.id}',0)">✕ Reject & re-run</button><button class="btn" onclick="viewOnBoard('${t.id}')">View on board</button><button class="origbtn" onclick="var o=this.nextElementSibling;o.classList.toggle('open');this.textContent=o.classList.contains('open')?'Hide original ▲':'Show original ▼'">Show original ▼</button><div class="orig" id="orig-${t.id}"><div class="log mono" style="height:160px">${src.log.map(l=>`<div><span class="ts">${l[0]}</span> ${esc(l[1])}</div>`).join("")}</div></div></div></div>`}).join("")
- :`<div class="empty"><span class="big">✦</span>All clear — the interceptor handled everything so far.<br><span style="font-size:12.5px">Only orchestrator sessions that truly need you land here.</span></div>`}
+ :`<div class="empty"><span class="big">✦</span>All clear — the interceptor handled everything so far.<br><span style="font-size:12.5px">Only orchestrator sessions that truly need you land here.</span></div>`;if(localStorage.getItem("ab_intro")!=="1")$("#inbox").insertAdjacentHTML("afterbegin",`<div class="intro"><span><b>AgentBoard</b> is the IDE replacement — your agents write the code, you only see what needs you. This is a simulated demo: try approving a card.</span><button onclick="dismissIntro()" title="Dismiss">×</button></div>`)}
+function dismissIntro(){localStorage.setItem("ab_intro","1");renderInbox()}
+function closeWelc(){localStorage.setItem("ab_welcomed","1");$("#welc").classList.add("hide")}
 function renderClosed(){const cs=S.tasks.filter(t=>t.closed),d=$("#closed"),o=d.open;d.innerHTML=`<summary>Closed sessions (${cs.length})</summary>`+(cs.map(t=>`<div class="cl"><span>${esc(t.title)} <span class="tag" style="color:var(--${t.result==="rejected"?"bad":"ok"})">${t.result==="rejected"?"rejected":"merged"}</span></span><button class="btn mini" onclick="reopen('${t.id}')">↺ Reopen</button></div>`).join("")||'<div style="color:var(--mut);font-size:12.5px;padding:6px 0">No closed sessions yet. Use “Close session” on a Done card.</div>');d.open=o}
 function closeSess(id,e){e&&e.stopPropagation();const t=S.tasks.find(x=>x.id===id);t.closed=true;if(sel===id)closeSide();ev(`Closed session “${esc(t.title)}”`);save();render()}
 function reopen(id){const t=S.tasks.find(x=>x.id===id);t.closed=false;ev(`Reopened “${esc(t.title)}”`);save();render()}
@@ -243,5 +260,5 @@ $("#new").onclick=()=>{$("#modal").classList.add("open");$("#form [name=title]")
 $("#form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);const t=mk(f.get("title"),+f.get("agent"),"backlog",f.get("repo")||"acme/web-app",f.get("desc"));if(f.get("branch"))t.branch=f.get("branch");S.tasks.unshift(t);ev(`Created “${esc(t.title)}”`);if(f.get("start"))startT(t.id);e.target.reset();$("#modal").classList.remove("open");save();render()};
 $("#reset").onclick=()=>{if(confirm("Reset demo data?")){closeSide();seed();render()}};
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeSide();$("#modal").classList.remove("open")}if(e.key==="n"&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$("#new").click()}});
-load();S.tasks.forEach(t=>{if(t.result&&t.col!=="done")t.col="done"});render();const h=location.hash;if(h==="#board")document.querySelector('.tabs button[data-tab="board"]').click();else if(h==="#dashboard")document.querySelector('.tabs button[data-tab="dash"]').click();else if(h==="#brain")document.querySelector('.tabs button[data-tab="brain"]').click();else document.querySelector('.tabs button[data-tab="inbox"]').click();setInterval(loop,1000);
+load();S.tasks.forEach(t=>{if(t.result&&t.col!=="done")t.col="done"});render();const h=location.hash;if(h==="#board")document.querySelector('.tabs button[data-tab="board"]').click();else if(h==="#dashboard")document.querySelector('.tabs button[data-tab="dash"]').click();else if(h==="#brain")document.querySelector('.tabs button[data-tab="brain"]').click();else document.querySelector('.tabs button[data-tab="inbox"]').click();if(!localStorage.getItem("ab_welcomed"))$("#welc").classList.remove("hide");setInterval(loop,1000);
 </script></body></html>
