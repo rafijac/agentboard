@@ -20,19 +20,13 @@ Before anything reaches your inbox, the executive assistant checks the wiki brai
 
 ![Wiki brain — the executive assistant's knowledge graph (concept illustration)](wiki-brain.png)
 
-## The interceptor — a cheap model in front of you
-
-A simulated cheap-model layer sits between the agents and you. When a session needs attention it first tries to handle it itself — and when it can, it just merges and moves on (marked ✦, never reaching you). Otherwise it rewrites the agent's long-winded log into the concise inbox card. Worker sessions never surface directly; their needs escalate through their orchestrator.
-
-## The board & dashboard
+## The board
 
 **Board** — every session collated: Done | Needs you | Running. Orchestrator sessions and their worker subagents, drag-and-drop between columns.
 
 ![Board — Done | Needs you | Running](board.png)
 
-**Dashboard** — KPIs (tasks done, success rate, avg time, cost, tokens, intercepted, needs-you), throughput chart, cost-by-agent chart, agent utilization, activity feed. The inbox is the default view — open the board directly with `index.html#board`, the dashboard with `index.html#dashboard`, the brain with `index.html#brain`.
-
-![Dashboard — KPIs, throughput, cost by agent](dashboard.png)
+The inbox is the default view — open the board directly with `index.html#board`, the brain with `index.html#brain`.
 
 ## Run it yourself
 
