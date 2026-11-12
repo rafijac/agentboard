@@ -6,7 +6,7 @@
 
 ![Demo — inbox triage, one-tap approve, board, dashboard, brain](demo.gif)
 
-An original, single-file portfolio demo by Rafi Jacobson. AgentBoard is the IDE replacement for the agent era: you don't write code anymore — you manage the agents that do. A board for every session, and an inbox that only shows you the sessions that truly need you.
+An original, single-file portfolio demo by [Rafi Jacobson](https://www.linkedin.com/in/rafijacobson/) ([rafijac@gmail.com](mailto:rafijac@gmail.com)). AgentBoard is the IDE replacement for the agent era: you don't write code anymore — you manage the agents that do. A board for every session, and an inbox that only shows you the sessions that truly need you.
 
 ## The inbox — only what needs you
 

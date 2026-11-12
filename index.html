@@ -50,6 +50,8 @@ label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px
 .feed div{font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line);color:var(--mut)}.feed b{color:var(--txt);font-weight:500}
 .board{grid-template-columns:repeat(3,1fr)!important;height:auto!important;flex:1;min-height:0}main{display:flex;flex-direction:column}.closed{flex:none;max-height:35vh;overflow:auto}.closed{margin:0 20px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}.closed summary{cursor:pointer;font-size:13px;font-weight:600}.closed .cl{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px}.mini{font-size:11px;padding:3px 8px}
 .foot{font-size:11px;color:var(--mut);padding:6px 20px;border-top:1px solid var(--line);background:var(--panel)}
+.foot a{color:var(--acc);text-decoration:none}
+.foot a:hover{text-decoration:underline}
 .tabs button .bdg{display:inline-block;min-width:18px;text-align:center;font-size:11px;background:var(--bad);color:#fff;border-radius:99px;padding:1px 5px;margin-left:6px;font-weight:600}
 .inbox{padding:18px;overflow-y:auto;height:100%;display:none;flex-direction:column;gap:12px;max-width:880px;margin:0 auto;width:100%}
 .inbox.on{display:flex}
@@ -76,7 +78,7 @@ label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px
 <label style="flex-direction:row;align-items:center;gap:6px">Sim speed <select id="speed"><option value="1">1×</option><option value="3" selected>3×</option><option value="8">8×</option></select></label>
 <button class="btn" id="reset">Reset demo</button><button class="btn p" id="new">+ New task</button></header>
 <main><div class="board" id="board" style="display:none"></div><div class="inbox on" id="inbox"></div><div class="dash" id="dash"></div><div class="brain" id="brain"></div><details class="closed" id="closed" style="display:none"></details></main>
-<div class="foot">Portfolio demo by Rafi Jacobson · all agents, repos, logs, tokens and costs are simulated in-browser · state saved to localStorage</div>
+<div class="foot">Portfolio demo by Rafi Jacobson · <a href="https://www.linkedin.com/in/rafijacobson/" target="_blank" rel="noopener">LinkedIn</a> · <a href="mailto:rafijac@gmail.com">rafijac@gmail.com</a> · all agents, repos, logs, tokens and costs are simulated in-browser · state saved to localStorage</div>
 <aside class="side" id="side"></aside>
 <div class="modal" id="modal"><form id="form"><h3 style="margin:0">New agent task</h3>
 <label>Title<input name="title" required placeholder="Add rate limiting to /api/search"></label>
