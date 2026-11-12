@@ -22,7 +22,7 @@ Before anything reaches your inbox, the executive assistant checks the wiki brai
 
 ## The interceptor — a cheap model in front of you
 
-A simulated cheap-model layer sits between the agents and you. When a session needs attention it first tries to handle it itself — in this simulation it's configured to resolve ~45% of interruptions on its own (marked ✦, never reaching you). Otherwise it rewrites the agent's long-winded log into the concise inbox card. Worker sessions never surface directly; their needs escalate through their orchestrator.
+A simulated cheap-model layer sits between the agents and you. When a session needs attention it first tries to handle it itself — and when it can, it just merges and moves on (marked ✦, never reaching you). Otherwise it rewrites the agent's long-winded log into the concise inbox card. Worker sessions never surface directly; their needs escalate through their orchestrator.
 
 ## The board & dashboard
 
