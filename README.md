@@ -1,33 +1,45 @@
-# AgentBoard — Kanban for Coding Agents (demo)
+# AgentBoard — Kanban for Coding Agents
 
-An original, single-file portfolio demo by Rafi Jacobson. A Linear/Cursor-style board for orchestrating AI coding agents.
-**All agents, repos, logs, token counts and costs are simulated in the browser.**
+**Your agents need a manager. This is the inbox.**
 
-![Board view — Done | Needs you | Running](board.png)
+▶️ **Live demo:** https://rafijac.github.io/agentboard/ — no setup, runs in your browser. All agents, repos, logs, token counts and costs are simulated.
 
-![Inbox view — only the sessions that truly need you, with targeted questions](inbox.png)
+![Demo — board, inbox triage, one-tap approve, dashboard](demo.gif)
 
-![Dashboard view — KPIs, throughput, cost by agent](dashboard.png)
+An original, single-file portfolio demo by Rafi Jacobson. AgentBoard is the missing UI for managing coding agents: a kanban board for every session, and an inbox that only shows you the sessions that truly need you.
 
-## Run
-Open `index.html` in any modern browser. No build step and no dependencies (the Inter/JetBrains Mono fonts come from Google Fonts and are optional).
+## The inbox — only what needs you
 
-## Views
-- **Board** — every session collated: Done | Needs you | Running. Orchestrator sessions and their worker subagents, drag-and-drop between columns
-- **Inbox** — only the main orchestrator sessions, only when they truly need you. Each item is rewritten by the interceptor (below) into a concise visual card: summary, fact chips, suggested action, Approve / Reject, plus "show original" for the full agent log. The executive assistant also asks targeted questions with one-tap answers ("1 test failure — merge anyway, or re-run the agent?")
-- **Dashboard** — KPIs (tasks done, success rate, avg time, cost, tokens, intercepted, needs-you), canvas throughput chart, SVG cost-by-agent chart, agent utilization, activity feed
-- Open the dashboard directly with `index.html#dashboard`, the inbox with `index.html#inbox`
+Most agent tools bury you in logs. The inbox does the opposite: only orchestrator sessions land here, only when they truly need a human. Each item is rewritten into a concise visual card — summary, fact chips, suggested action, Approve / Reject — plus "show original" for the full agent log. And instead of dumping a log on you, the executive assistant asks a targeted question with one-tap answers: *"1 test failure — merge anyway, or re-run the agent?"*
 
-## The interceptor (cheap model)
-A simulated cheap-model layer sits between the agents and you. When a session needs attention it first tries to handle it itself (~45% of the time it just merges and moves on — those never reach you, marked ✦). Otherwise it rewrites the agent's long-winded log into the concise visual inbox card. Worker sessions never surface directly; their needs escalate through their orchestrator.
+![Inbox — only the sessions that truly need you, with targeted questions](inbox.png)
 
-## The wiki brain (executive assistant's memory)
-Before anything reaches your inbox, the executive assistant checks the wiki brain — a living knowledge graph built from your past answers, decisions, and project context — and tries to resolve the session itself. Only what it can't answer with confidence becomes an inbox item, and when it does, the assistant asks a targeted question instead of dumping a log on you.
+## The wiki brain — the executive assistant's memory
+
+Before anything reaches your inbox, the executive assistant checks the wiki brain — a living knowledge graph built from your past answers, decisions, and project context — and tries to resolve the session itself. Only what it can't answer with confidence becomes an inbox item.
 
 ![Wiki brain — the executive assistant's knowledge graph (concept illustration)](wiki-brain.png)
 
+## The interceptor — a cheap model in front of you
+
+A simulated cheap-model layer sits between the agents and you. When a session needs attention it first tries to handle it itself — about 45% of the time it just merges and moves on (marked ✦, never reaching you). Otherwise it rewrites the agent's long-winded log into the concise inbox card. Worker sessions never surface directly; their needs escalate through their orchestrator.
+
+## The board & dashboard
+
+**Board** — every session collated: Done | Needs you | Running. Orchestrator sessions and their worker subagents, drag-and-drop between columns.
+
+![Board — Done | Needs you | Running](board.png)
+
+**Dashboard** — KPIs (tasks done, success rate, avg time, cost, tokens, intercepted, needs-you), throughput chart, cost-by-agent chart, agent utilization, activity feed. Open it directly with `index.html#dashboard`, the inbox with `index.html#inbox`.
+
+![Dashboard — KPIs, throughput, cost by agent](dashboard.png)
+
+## Run it yourself
+
+Open `index.html` in any modern browser. No build step and no dependencies (the Inter/JetBrains Mono fonts come from Google Fonts and are optional).
+
 ## Features
-- Columns: Done | Needs you | Running (left to right). New tasks go straight to Running (queued ones sit at the top with a "queued" tag until started); drag-and-drop between columns
+
 - Approve moves a card to Done (merged); reject archives a rejected copy in Done and re-runs the agent
 - "Close session" on a Done card moves it to the collapsible Closed sessions area below the board, where it can be reopened
 - Task cards: agent + model, worker/orchestrator tag, parent session, repo/branch, progress, tokens, est. cost, elapsed time, ✦ marker when the interceptor touched it
