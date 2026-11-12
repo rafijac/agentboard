@@ -16,7 +16,7 @@ The inbox is the default view — it's what you land on. Most agent tools bury y
 
 ## The wiki brain — the executive assistant's memory
 
-Before anything reaches your inbox, the executive assistant checks the wiki brain — a living knowledge graph built from your past answers, decisions, and project context — and tries to resolve the session itself. Only what it can't answer with confidence becomes an inbox item. See it in the demo's **Brain** tab, which shows what the brain has learned from you so far.
+Before anything reaches your inbox, the executive assistant checks the wiki brain — a living knowledge graph built from your past answers, decisions, and project context — and tries to resolve the session itself. Only what it can't answer with confidence becomes an inbox item. Explore it live in the demo's **Brain** tab: an interactive 3D graph of clusters, nodes, and edges — drag to rotate, scroll to zoom, hover a node — plus what the brain has learned from you so far.
 
 ![Wiki brain — the executive assistant's knowledge graph (concept illustration)](wiki-brain.png)
 

@@ -39,6 +39,10 @@ label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px
 .brain.on{display:block}
 .brain img{width:100%;border-radius:12px;border:1px solid var(--line)}
 .mem{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.gwrap{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#08090b}
+.gwrap canvas{display:block;width:100%;height:420px;cursor:grab}
+.gwrap canvas:active{cursor:grabbing}
+.ghint{position:absolute;right:10px;bottom:8px;font-size:11px;color:var(--mut);pointer-events:none}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.kpi span{color:var(--mut);font-size:12px}.kpi b{display:block;font-size:26px;margin-top:4px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.panel h4{margin:0 0 10px;font-size:13px}
@@ -126,11 +130,42 @@ function loop(){const sp=+$("#speed").value;let ch=false;S.tasks.forEach(t=>{if(
  if(ch){save();render()}}
 function render(){renderBoard();renderBdg();if($("#dash").classList.contains("on"))renderDash();if($("#inbox").classList.contains("on"))renderInbox();if($("#brain").classList.contains("on"))renderBrain();if(sel)renderSide()}
 function renderBrain(){const done=S.tasks.filter(t=>t.col==="done").length;
+ if(!$("#brain").dataset.built){$("#brain").dataset.built="1";
  $("#brain").innerHTML=`<h2 style="margin:4px 0 6px;font-size:20px">The wiki brain</h2><p style="color:var(--mut);margin:0 0 14px">The executive assistant's memory — a living knowledge graph built from your past answers, decisions, and project context. Before anything reaches your inbox, the assistant checks the brain and tries to resolve the session itself. Only what it can't answer with confidence becomes an inbox item.</p>
- <img src="wiki-brain.png" alt="Wiki brain — the executive assistant's knowledge graph">
+ <div class="gwrap"><canvas id="bgraph" height="420"></canvas><div class="ghint">Drag to rotate · scroll to zoom · hover a node</div></div>
  <div class="sec">What the brain has learned from you (simulated)</div>
  <div class="mem"><span class="chip">✓ Merge when tests pass and diff &lt; 200 lines</span><span class="chip">✓ Never auto-merge auth or payments code</span><span class="chip">✓ You prefer small, reviewable PRs</span><span class="chip">✓ Re-run on flaky tests, don't merge</span><span class="chip">✓ Friday deploys need your eyes</span></div>
- <div class="kpis" style="margin-top:14px">${[["Sessions resolved by the brain",S.intercepted||0],["Decisions learned",5],["Needs you",inboxItems().length],["Sessions reviewed",done]].map(k=>`<div class="kpi"><span>${k[0]}</span><b>${k[1]}</b></div>`).join("")}</div>`}
+ <div class="kpis" style="margin-top:14px"><div class="kpi"><span>Sessions resolved by the brain</span><b id="bk1"></b></div><div class="kpi"><span>Decisions learned</span><b>5</b></div><div class="kpi"><span>Needs you</span><b id="bk2"></b></div><div class="kpi"><span>Sessions reviewed</span><b id="bk3"></b></div></div>`}
+ const b1=$("#bk1");if(b1){b1.textContent=S.intercepted||0;$("#bk2").textContent=inboxItems().length;$("#bk3").textContent=done}}
+let bgRAF=null;
+function brainData(){let s=42;const r=()=>{s=(s*1103515245+12345)%2147483648;return s/2147483648};
+ const CL=[["Merge rules","#7c6cff",[-110,-50,0]],["Repos","#4fd1c5",[110,-60,10]],["Agents","#f5b84a",[0,80,-50]],["Patterns","#3ecf8e",[-50,70,70]],["Decisions","#f2558a",[70,20,80]]];
+ const LBL={0:["merge < 200 lines","never auto-merge auth","small PRs"],1:["acme/web-app","acme/storefront","acme/platform"],2:["Atlas","Orion","Nova"],3:["flaky tests → re-run","retry with jitter"],4:["Friday deploys","payments need eyes"]};
+ const nodes=[],edges=[];
+ CL.forEach((c,ci)=>{for(let i=0;i<9;i++){nodes.push({x:c[2][0]+(r()-.5)*130,y:c[2][1]+(r()-.5)*110,z:c[2][2]+(r()-.5)*110,c:ci,label:(LBL[ci]||[])[i]||null})}});
+ CL.forEach((c,ci)=>{const ix=nodes.map((n,i)=>n.c===ci?i:-1).filter(i=>i>=0);
+  ix.forEach(i=>{ix.filter(j=>j!==i).map(j=>{const a=nodes[i],b=nodes[j];return [Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z),j]}).sort((a,b)=>a[0]-b[0]).slice(0,2).forEach(([d,j])=>{if(!edges.some(e=>(e[0]===i&&e[1]===j)||(e[0]===j&&e[1]===i)))edges.push([i,j])})})});
+ for(let k=0;k<8;k++){const a=Math.floor(r()*nodes.length),b=Math.floor(r()*nodes.length);if(a!==b&&nodes[a].c!==nodes[b].c&&!edges.some(e=>(e[0]===a&&e[1]===b)||(e[0]===b&&e[1]===a)))edges.push([a,b])}
+ return {CL,nodes,edges}}
+function stopBrainGraph(){if(bgRAF){cancelAnimationFrame(bgRAF);bgRAF=null}}
+function startBrainGraph(){const cv=$("#bgraph");if(!cv)return;stopBrainGraph();
+ const ctx=cv.getContext("2d"),dpr=devicePixelRatio||1,W=cv.clientWidth,H=420;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+ const D=brainData();let base=0,ox=0,oy=0,tox=0,toy=0,drag=null,hover=-1,zoom=1,tzoom=1;
+ const rot=p=>{const rx=.45+ox,ry=base+oy,c1=Math.cos(rx),s1=Math.sin(rx),c2=Math.cos(ry),s2=Math.sin(ry);const y1=p.y*c1-p.z*s1,z1=p.y*s1+p.z*c1;return [p.x*c2+z1*s2,y1,-p.x*s2+z1*c2]};
+ const proj=p=>{const [x,y,z]=rot(p),s=380/(380+z)*zoom;return [W/2+x*s*1.5,H/2+y*s*1.5,s,z]};
+ cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,ox:tox,oy:toy};cv.setPointerCapture(e.pointerId)};
+ cv.onpointermove=e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  if(drag){toy=drag.oy+(e.clientX-drag.x)*.005;tox=drag.ox+(e.clientY-drag.y)*.005}
+  else{let bd=14;hover=-1;D.nodes.forEach((n,i)=>{const [px,py]=proj(n),d=Math.hypot(px-mx,py-my);if(d<bd){bd=d;hover=i}})}};
+ cv.onpointerup=()=>drag=null;cv.onpointerleave=()=>{drag=null;hover=-1};
+ cv.onwheel=e=>{e.preventDefault();tzoom=Math.min(1.8,Math.max(.6,tzoom+(e.deltaY<0?.12:-.12)))};
+ (function frame(){base+=.0028;ox+=(tox-ox)*.08;oy+=(toy-oy)*.08;zoom+=(tzoom-zoom)*.1;
+  ctx.clearRect(0,0,W,H);const P=D.nodes.map(proj);
+  D.edges.forEach(([i,j])=>{const a=P[i],b=P[j];ctx.strokeStyle=`rgba(150,150,190,${.10+Math.min(a[2],b[2])*.22})`;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke()});
+  D.nodes.map((n,i)=>i).sort((a,b)=>P[a][3]-P[b][3]).forEach(i=>{const n=D.nodes[i],[px,py,s]=P[i];ctx.beginPath();ctx.arc(px,py,2.2*s+1.6,0,7);ctx.fillStyle=D.CL[n.c][1];ctx.globalAlpha=.5+.5*s;ctx.fill();ctx.globalAlpha=1;
+   if(n.label&&(s>.95||i===hover)){ctx.font="11px Inter,sans-serif";ctx.fillStyle=i===hover?"#fff":"#c9cdd9";ctx.fillText(n.label,px+8,py+3)}});
+  D.CL.forEach(c=>{const [px,py]=proj({x:c[2][0],y:c[2][1]-95,z:c[2][2]});ctx.font="600 12px Inter,sans-serif";ctx.fillStyle=c[1];ctx.globalAlpha=.95;ctx.fillText(c[0],px-32,py);ctx.globalAlpha=1});
+  bgRAF=requestAnimationFrame(frame)})()}
 function renderBoard(){$("#board").innerHTML=COLS.map(([k,l,c])=>{const ts=S.tasks.filter(t=>t.col===k&&!t.closed).sort((a,b)=>(b.queued?1:0)-(a.queued?1:0));return `<section class="col"><h3><span class="dot" style="background:${c}"></span>${l}<span class="n">${ts.length}</span></h3><div class="list" data-col="${k}">${ts.map(card).join("")}</div></section>`}).join("")+"";renderClosed()}
 function inboxItems(){return S.tasks.filter(t=>t.inbox&&!t.closed)}
 function renderBdg(){const n=inboxItems().filter(t=>t.inbox.unread).length,b=$("#inboxBdg");b.style.display=n?"":"none";b.textContent=n}
@@ -200,7 +235,7 @@ document.addEventListener("dragend",e=>{e.target.classList?.remove("drag");docum
 document.addEventListener("dragover",e=>{const l=e.target.closest?.(".list");if(l){e.preventDefault();document.querySelectorAll(".over").forEach(x=>x!==l&&x.classList.remove("over"));l.classList.add("over")}});
 document.addEventListener("drop",e=>{const l=e.target.closest?.(".list");if(l){e.preventDefault();move(e.dataTransfer.getData("text/plain"),l.dataset.col)}});
 $("#board").addEventListener("click",e=>{const c=e.target.closest(".card");if(c)openSide(c.dataset.id)});
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));const tab=b.dataset.tab;$("#dash").classList.toggle("on",tab==="dash");$("#inbox").classList.toggle("on",tab==="inbox");$("#brain").classList.toggle("on",tab==="brain");$("#board").style.display=tab==="board"?"grid":"none";$("#closed").style.display=tab==="board"?"block":"none";if(tab==="inbox")openInbox();if(tab==="brain")renderBrain();render()});
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));const tab=b.dataset.tab;$("#dash").classList.toggle("on",tab==="dash");$("#inbox").classList.toggle("on",tab==="inbox");$("#brain").classList.toggle("on",tab==="brain");$("#board").style.display=tab==="board"?"grid":"none";$("#closed").style.display=tab==="board"?"block":"none";if(tab==="inbox")openInbox();if(tab==="brain"){renderBrain();startBrainGraph()}else stopBrainGraph();render()});
 $("#form [name=agent]").innerHTML=AGENTS.map((a,i)=>`<option value="${i}">${a.n} — ${a.m}</option>`).join("");
 $("#new").onclick=()=>{$("#modal").classList.add("open");$("#form [name=title]").focus()};$("#cancel").onclick=()=>$("#modal").classList.remove("open");
 $("#form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);const t=mk(f.get("title"),+f.get("agent"),"backlog",f.get("repo")||"acme/web-app",f.get("desc"));if(f.get("branch"))t.branch=f.get("branch");S.tasks.unshift(t);ev(`Created “${esc(t.title)}”`);if(f.get("start"))startT(t.id);e.target.reset();$("#modal").classList.remove("open");save();render()};
