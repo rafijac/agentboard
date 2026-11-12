@@ -4,19 +4,19 @@
 
 ▶️ **Live demo:** https://rafijac.github.io/agentboard/ — no setup, runs in your browser. All agents, repos, logs, token counts and costs are simulated.
 
-![Demo — board, inbox triage, one-tap approve, dashboard](demo.gif)
+![Demo — inbox triage, one-tap approve, board, dashboard, brain](demo.gif)
 
 An original, single-file portfolio demo by Rafi Jacobson. AgentBoard is the missing UI for managing coding agents: a kanban board for every session, and an inbox that only shows you the sessions that truly need you.
 
 ## The inbox — only what needs you
 
-Most agent tools bury you in logs. The inbox does the opposite: only orchestrator sessions land here, only when they truly need a human. Each item is rewritten into a concise visual card — summary, fact chips, suggested action, Approve / Reject — plus "show original" for the full agent log. And instead of dumping a log on you, the executive assistant asks a targeted question with one-tap answers: *"1 test failure — merge anyway, or re-run the agent?"*
+The inbox is the default view — it's what you land on. Most agent tools bury you in logs. The inbox does the opposite: only orchestrator sessions land here, only when they truly need a human. Each item is rewritten into a concise visual card — summary, fact chips, suggested action, Approve / Reject — plus "show original" for the full agent log. And instead of dumping a log on you, the executive assistant asks a targeted question with one-tap answers: *"1 test failure — merge anyway, or re-run the agent?"*
 
 ![Inbox — only the sessions that truly need you, with targeted questions](inbox.png)
 
 ## The wiki brain — the executive assistant's memory
 
-Before anything reaches your inbox, the executive assistant checks the wiki brain — a living knowledge graph built from your past answers, decisions, and project context — and tries to resolve the session itself. Only what it can't answer with confidence becomes an inbox item.
+Before anything reaches your inbox, the executive assistant checks the wiki brain — a living knowledge graph built from your past answers, decisions, and project context — and tries to resolve the session itself. Only what it can't answer with confidence becomes an inbox item. See it in the demo's **Brain** tab, which shows what the brain has learned from you so far.
 
 ![Wiki brain — the executive assistant's knowledge graph (concept illustration)](wiki-brain.png)
 
@@ -30,7 +30,7 @@ A simulated cheap-model layer sits between the agents and you. When a session ne
 
 ![Board — Done | Needs you | Running](board.png)
 
-**Dashboard** — KPIs (tasks done, success rate, avg time, cost, tokens, intercepted, needs-you), throughput chart, cost-by-agent chart, agent utilization, activity feed. Open it directly with `index.html#dashboard`, the inbox with `index.html#inbox`.
+**Dashboard** — KPIs (tasks done, success rate, avg time, cost, tokens, intercepted, needs-you), throughput chart, cost-by-agent chart, agent utilization, activity feed. The inbox is the default view — open the board directly with `index.html#board`, the dashboard with `index.html#dashboard`, the brain with `index.html#brain`.
 
 ![Dashboard — KPIs, throughput, cost by agent](dashboard.png)
 

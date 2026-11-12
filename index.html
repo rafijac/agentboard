@@ -35,6 +35,10 @@ main{flex:1;overflow:hidden;position:relative}
 .modal form{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(440px,92%);display:flex;flex-direction:column;gap:10px}
 label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px}input,select,textarea{background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:8px;font:inherit}
 .dash{padding:18px;overflow-y:auto;height:100%;display:none}.dash.on{display:block;flex:1;min-height:0}
+.brain{padding:18px;overflow-y:auto;height:100%;display:none;max-width:880px;margin:0 auto;width:100%}
+.brain.on{display:block}
+.brain img{width:100%;border-radius:12px;border:1px solid var(--line)}
+.mem{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.kpi span{color:var(--mut);font-size:12px}.kpi b{display:block;font-size:26px;margin-top:4px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.panel h4{margin:0 0 10px;font-size:13px}
@@ -63,11 +67,11 @@ label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px
 .qchip{background:var(--card2);color:var(--txt);border:1px solid var(--line);padding:6px 12px;border-radius:99px;cursor:pointer;font:inherit;font-size:12.5px}
 .qchip:hover{border-color:var(--acc)}
 </style></head><body>
-<header><div class="logo"><i></i>AgentBoard</div><div class="tabs"><button data-tab="board" class="on">Board</button><button data-tab="inbox">Inbox<span class="bdg" id="inboxBdg" style="display:none"></span></button><button data-tab="dash">Dashboard</button></div>
+<header><div class="logo"><i></i>AgentBoard</div><div class="tabs"><button data-tab="inbox" class="on">Inbox<span class="bdg" id="inboxBdg" style="display:none"></span></button><button data-tab="board">Board</button><button data-tab="dash">Dashboard</button><button data-tab="brain">Brain</button></div>
 <span class="demo">DEMO · simulated data</span><div class="sp"></div>
 <label style="flex-direction:row;align-items:center;gap:6px">Sim speed <select id="speed"><option value="1">1×</option><option value="3" selected>3×</option><option value="8">8×</option></select></label>
 <button class="btn" id="reset">Reset demo</button><button class="btn p" id="new">+ New task</button></header>
-<main><div class="board" id="board"></div><div class="inbox" id="inbox"></div><div class="dash" id="dash"></div><details class="closed" id="closed"></details></main>
+<main><div class="board" id="board" style="display:none"></div><div class="inbox on" id="inbox"></div><div class="dash" id="dash"></div><div class="brain" id="brain"></div><details class="closed" id="closed" style="display:none"></details></main>
 <div class="foot">Portfolio demo by Rafi Jacobson · all agents, repos, logs, tokens and costs are simulated in-browser · state saved to localStorage</div>
 <aside class="side" id="side"></aside>
 <div class="modal" id="modal"><form id="form"><h3 style="margin:0">New agent task</h3>
@@ -120,7 +124,13 @@ function finish(t,silent,forceEsc){if(!t.diff.length)t.diff.push({f:FILES[0],a:2
 function ev(h){S.events.unshift({h,at:Date.now()});S.events=S.events.slice(0,30)}
 function loop(){const sp=+$("#speed").value;let ch=false;S.tasks.forEach(t=>{if(t.col==="running"&&!t.queued){tick(t,.5*sp);ch=true;if(t.progress>=100)finish(t)}});
  if(ch){save();render()}}
-function render(){renderBoard();renderBdg();if($("#dash").classList.contains("on"))renderDash();if($("#inbox").classList.contains("on"))renderInbox();if(sel)renderSide()}
+function render(){renderBoard();renderBdg();if($("#dash").classList.contains("on"))renderDash();if($("#inbox").classList.contains("on"))renderInbox();if($("#brain").classList.contains("on"))renderBrain();if(sel)renderSide()}
+function renderBrain(){const done=S.tasks.filter(t=>t.col==="done").length;
+ $("#brain").innerHTML=`<h2 style="margin:4px 0 6px;font-size:20px">The wiki brain</h2><p style="color:var(--mut);margin:0 0 14px">The executive assistant's memory — a living knowledge graph built from your past answers, decisions, and project context. Before anything reaches your inbox, the assistant checks the brain and tries to resolve the session itself. Only what it can't answer with confidence becomes an inbox item.</p>
+ <img src="wiki-brain.png" alt="Wiki brain — the executive assistant's knowledge graph">
+ <div class="sec">What the brain has learned from you (simulated)</div>
+ <div class="mem"><span class="chip">✓ Merge when tests pass and diff &lt; 200 lines</span><span class="chip">✓ Never auto-merge auth or payments code</span><span class="chip">✓ You prefer small, reviewable PRs</span><span class="chip">✓ Re-run on flaky tests, don't merge</span><span class="chip">✓ Friday deploys need your eyes</span></div>
+ <div class="kpis" style="margin-top:14px">${[["Sessions resolved by the brain",S.intercepted||0],["Decisions learned",5],["Needs you",inboxItems().length],["Sessions reviewed",done]].map(k=>`<div class="kpi"><span>${k[0]}</span><b>${k[1]}</b></div>`).join("")}</div>`}
 function renderBoard(){$("#board").innerHTML=COLS.map(([k,l,c])=>{const ts=S.tasks.filter(t=>t.col===k&&!t.closed).sort((a,b)=>(b.queued?1:0)-(a.queued?1:0));return `<section class="col"><h3><span class="dot" style="background:${c}"></span>${l}<span class="n">${ts.length}</span></h3><div class="list" data-col="${k}">${ts.map(card).join("")}</div></section>`}).join("")+"";renderClosed()}
 function inboxItems(){return S.tasks.filter(t=>t.inbox&&!t.closed)}
 function renderBdg(){const n=inboxItems().filter(t=>t.inbox.unread).length,b=$("#inboxBdg");b.style.display=n?"":"none";b.textContent=n}
@@ -190,11 +200,11 @@ document.addEventListener("dragend",e=>{e.target.classList?.remove("drag");docum
 document.addEventListener("dragover",e=>{const l=e.target.closest?.(".list");if(l){e.preventDefault();document.querySelectorAll(".over").forEach(x=>x!==l&&x.classList.remove("over"));l.classList.add("over")}});
 document.addEventListener("drop",e=>{const l=e.target.closest?.(".list");if(l){e.preventDefault();move(e.dataTransfer.getData("text/plain"),l.dataset.col)}});
 $("#board").addEventListener("click",e=>{const c=e.target.closest(".card");if(c)openSide(c.dataset.id)});
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));const tab=b.dataset.tab;$("#dash").classList.toggle("on",tab==="dash");$("#inbox").classList.toggle("on",tab==="inbox");$("#board").style.display=tab==="board"?"grid":"none";$("#closed").style.display=tab==="board"?"block":"none";if(tab==="inbox")openInbox();render()});
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));const tab=b.dataset.tab;$("#dash").classList.toggle("on",tab==="dash");$("#inbox").classList.toggle("on",tab==="inbox");$("#brain").classList.toggle("on",tab==="brain");$("#board").style.display=tab==="board"?"grid":"none";$("#closed").style.display=tab==="board"?"block":"none";if(tab==="inbox")openInbox();if(tab==="brain")renderBrain();render()});
 $("#form [name=agent]").innerHTML=AGENTS.map((a,i)=>`<option value="${i}">${a.n} — ${a.m}</option>`).join("");
 $("#new").onclick=()=>{$("#modal").classList.add("open");$("#form [name=title]").focus()};$("#cancel").onclick=()=>$("#modal").classList.remove("open");
 $("#form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);const t=mk(f.get("title"),+f.get("agent"),"backlog",f.get("repo")||"acme/web-app",f.get("desc"));if(f.get("branch"))t.branch=f.get("branch");S.tasks.unshift(t);ev(`Created “${esc(t.title)}”`);if(f.get("start"))startT(t.id);e.target.reset();$("#modal").classList.remove("open");save();render()};
 $("#reset").onclick=()=>{if(confirm("Reset demo data?")){closeSide();seed();render()}};
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeSide();$("#modal").classList.remove("open")}if(e.key==="n"&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$("#new").click()}});
-load();S.tasks.forEach(t=>{if(t.result&&t.col!=="done")t.col="done"});render();if(location.hash==="#dashboard")document.querySelector('.tabs button[data-tab="dash"]').click();if(location.hash==="#inbox")document.querySelector('.tabs button[data-tab="inbox"]').click();setInterval(loop,1000);
+load();S.tasks.forEach(t=>{if(t.result&&t.col!=="done")t.col="done"});render();const h=location.hash;if(h==="#board")document.querySelector('.tabs button[data-tab="board"]').click();else if(h==="#dashboard")document.querySelector('.tabs button[data-tab="dash"]').click();else if(h==="#brain")document.querySelector('.tabs button[data-tab="brain"]').click();else document.querySelector('.tabs button[data-tab="inbox"]').click();setInterval(loop,1000);
 </script></body></html>
